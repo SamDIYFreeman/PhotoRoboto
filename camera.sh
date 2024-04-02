@@ -24,7 +24,7 @@ do
 	if [ $(gpio -g read $SHUTTER) -eq 0 ]; then
 		gpio -g write $LED 0
     # takes photo and sends to printer
-		raspistill -n -t 200 -w 512 -h 384 -o - | lp -d "EPSON_TM-T20II"
+		libcamera-still -o - | lp -d "EPSON_TM-T20II"
 		sleep 1
 		# Wait for user to release button before resuming
 		while [ $(gpio -g read $SHUTTER) -eq 0 ]; do continue; done
