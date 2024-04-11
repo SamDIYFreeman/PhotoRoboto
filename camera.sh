@@ -1,43 +1,34 @@
 #!/bin/bash
 
-SHUTTER=20
-HALT=21
-LED=16
-
-# Initialize GPIO states
-gpio -g mode  $SHUTTER up
-gpio -g mode  $HALT    up
-gpio -g mode  $LED     out
-
 # Flash LED on startup to indicate ready state
 for i in `seq 1 5`;
 do
-	gpio -g write $LED 0
+	gpioset 0 16=0
 	sleep 0.2
-	gpio -g write $LED 1
+	gpioset 0 16=1
 	sleep 0.2
 done   
 
 while :
 do
 	# Check for shutter button
-	if [ $(gpio -g read $SHUTTER) -eq 0 ]; then
-		gpio -g write $LED 0
-    # takes photo and sends to printer
-		libcamera-still --width 512 --height 384 -n -t 1 -o- | lp
+	if [ $(gpioget -l 0 20) -eq 1 ]; then
+		gpioset 0 16=0
+		# takes photo and sends to printer
+		libcamera-still --width 512 --height 384 -n -t 1 -o - | lp
 		sleep 1
 		# Wait for user to release button before resuming
-		while [ $(gpio -g read $SHUTTER) -eq 0 ]; do continue; done
-		gpio -g write $LED 1
+		while [ $(gpioget -l 0 20) -eq 1 ]; do continue; done
+		gpioset 0 16=1
 	fi
 
 	# Check for halt button
-	if [ $(gpio -g read $HALT) -eq 0 ]; then
+	if [ $(gpioget -l 0 21) -eq 1 ]; then
 		# Must be held for 2+ seconds before shutdown is run...
 		starttime=$(date +%s)
-		while [ $(gpio -g read $HALT) -eq 0 ]; do
+		while [ $(gpioget -l 0 21) -eq 1 ]; do
 			if [ $(($(date +%s)-starttime)) -ge 2 ]; then
-				gpio -g write $LED 1
+				gpioset 0 16=1
 				shutdown -h now
 			fi
 		done
