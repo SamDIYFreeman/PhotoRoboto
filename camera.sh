@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# based on https://github.com/adafruit/zj-58/blob/master/extras/camera.sh
+
 # Flash LED on startup to indicate ready state
 for i in `seq 1 5`;
 do
